@@ -1,4 +1,6 @@
-import entity.User
+package cn.berberman.demo.dao
+
+import cn.berberman.demo.entity.User
 import org.hibernate.Session
 
 inline operator fun <reified T> Session.get(id: Int): T = find(T::class.java, id)

@@ -15,6 +15,6 @@
         <property name="format_sql">true</property>
         <property name="dialect">org.hibernate.dialect.MySQL5Dialect</property>
 
-        <mapping class="entity.User"/>
+        <mapping class="cn.berberman.demo.entity.User"/>
     </session-factory>
 </hibernate-configuration>
