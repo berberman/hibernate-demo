@@ -7,7 +7,7 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder
 import java.io.File
 
 object Datasource {
-	lateinit var serviceRegistry: StandardServiceRegistry
+	private lateinit var serviceRegistry: StandardServiceRegistry
 
 	lateinit var sessionFactory: SessionFactory
 

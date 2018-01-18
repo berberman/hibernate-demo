@@ -1,4 +1,4 @@
-package entity
+package cn.berberman.demo.entity
 
 import javax.persistence.Entity
 import javax.persistence.GeneratedValue
@@ -17,4 +17,8 @@ class User @JvmOverloads constructor(block: User.() -> Unit = {}) {
 	var name: String? = null
 
 	operator fun invoke(block: User.() -> Unit) = apply { block() }
+	override fun toString(): String {
+		return "User(id=$id, name=$name)"
+	}
+
 }

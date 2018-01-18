@@ -1,13 +1,29 @@
 package cn.berberman.demo
 
+import cn.berberman.demo.controller.DemoController
 import cn.berberman.demo.dao.Datasource
-import cn.berberman.demo.dao.transaction
+import com.iyanuadelekan.kanary.app.KanaryApp
+import com.iyanuadelekan.kanary.core.KanaryRouter
+import com.iyanuadelekan.kanary.handlers.AppHandler
+import com.iyanuadelekan.kanary.server.Server
+import com.iyanuadelekan.kanary.middleware.simpleConsoleRequestLogger
 
 fun Array<String>.main() {
 	Datasource.connect()
-	transaction {
-		println(findUser(2).name)
-		deleteUser(2)
-	}
-	Datasource.close()
+	Server().apply {
+		handler = AppHandler(KanaryApp().apply app@ {
+			DemoController().let {
+				KanaryRouter().apply router@ {
+					on("user/") use it
+					post("addUser/", it::addUser)
+					get("hello/", it::hello)
+					get("all/",it::findAll)
+					this@app.apply {
+						mount(this@router)
+						use(simpleConsoleRequestLogger)
+					}
+				}
+			}
+		})
+	}.listen(2333)
 }
