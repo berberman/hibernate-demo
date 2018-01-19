@@ -6,9 +6,14 @@ import org.hibernate.boot.registry.StandardServiceRegistry
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder
 import java.io.File
 
-object Datasource {
-	private lateinit var serviceRegistry: StandardServiceRegistry
+class DB private constructor() {
+	companion object {
+		val instance:DB by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
+			DB()
+		}
+	}
 
+	private lateinit var serviceRegistry: StandardServiceRegistry
 	lateinit var sessionFactory: SessionFactory
 
 	fun connect() {

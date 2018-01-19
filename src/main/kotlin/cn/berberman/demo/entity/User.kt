@@ -17,8 +17,8 @@ class User @JvmOverloads constructor(block: User.() -> Unit = {}) {
 	var name: String? = null
 
 	operator fun invoke(block: User.() -> Unit) = apply { block() }
-	override fun toString(): String {
-		return "User(id=$id, name=$name)"
-	}
+	override fun toString() =
+			"User(id=$id, name=$name)"
+
 
 }
