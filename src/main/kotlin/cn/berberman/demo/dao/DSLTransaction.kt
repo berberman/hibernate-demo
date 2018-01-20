@@ -32,7 +32,7 @@ class SessionScope {
 class HQLQueryStringBuilder<T>(entity: Class<*>) {
 	private val entityName: String = entity.simpleName
 	private val stringBuilder = StringBuilder()
-	fun from() = apply {
+	fun fromThis() = apply {
 		stringBuilder.append("from $entityName ${entityName.toLowerCase()} ")
 	}
 
