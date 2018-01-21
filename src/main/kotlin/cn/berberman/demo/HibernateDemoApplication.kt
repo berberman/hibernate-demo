@@ -2,13 +2,11 @@ package cn.berberman.demo
 
 import cn.berberman.demo.controller.DemoController
 import cn.berberman.demo.dao.DB
-import cn.berberman.demo.dao.session
-import cn.berberman.demo.entity.User
 import com.iyanuadelekan.kanary.app.KanaryApp
 import com.iyanuadelekan.kanary.core.KanaryRouter
 import com.iyanuadelekan.kanary.handlers.AppHandler
-import com.iyanuadelekan.kanary.server.Server
 import com.iyanuadelekan.kanary.middleware.simpleConsoleRequestLogger
+import com.iyanuadelekan.kanary.server.Server
 
 fun Array<String>.main() {
 	DB.instance.connect()

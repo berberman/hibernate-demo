@@ -8,7 +8,7 @@ import java.io.File
 
 class DB private constructor() {
 	companion object {
-		val instance:DB by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
+		val instance: DB by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
 			DB()
 		}
 	}

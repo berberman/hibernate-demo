@@ -1,9 +1,6 @@
 package cn.berberman.demo.dao
 
-import cn.berberman.demo.entity.User
-import net.sf.ehcache.search.expression.Not
 import org.hibernate.Session
-import org.hibernate.criterion.Restrictions
 import kotlin.reflect.KMutableProperty1
 
 
@@ -92,16 +89,18 @@ sealed class PotatoExpression {
 
 class PotatoExpressionBuilder {
 	private val holder = StringBuilder()
-	infix fun like(target: String) = runReturnBuilder { PotatoExpression.LikeExpression(target).let(holder::append) }
-	fun not() = runReturnBuilder { PotatoExpression.NotExpression.let(holder::append) }
-	infix fun <T> `in`(list: List<T>) = runReturnBuilder { PotatoExpression.InExpression(list).let(holder::append) }
-	infix fun between(range: IntRange) = runReturnBuilder { PotatoExpression.BetweenExpression(range.first, range.last).let(holder::append) }
-	fun <T> between(a: Comparable<T>, b: Comparable<T>) = runReturnBuilder { PotatoExpression.BetweenExpression(a, b).let(holder::append) }
-	override fun toString(): String = holder.toString()
-	//	private inline fun <T> runReturnUnit(block: () -> T) = kotlin.run { block();Unit }
+
 	private inline fun <T> runReturnBuilder(block: () -> T) = kotlin.run { block();this }
 
+
+	fun not() = runReturnBuilder { PotatoExpression.NotExpression.let(holder::append) }
+	fun <T> between(a: Comparable<T>, b: Comparable<T>) = runReturnBuilder { PotatoExpression.BetweenExpression(a, b).let(holder::append) }
+	infix fun <T> `in`(list: List<T>) = runReturnBuilder { PotatoExpression.InExpression(list).let(holder::append) }
+	infix fun between(range: IntRange) = runReturnBuilder { PotatoExpression.BetweenExpression(range.first, range.last).let(holder::append) }
+	infix fun like(target: String) = runReturnBuilder { PotatoExpression.LikeExpression(target).let(holder::append) }
 	infix fun equals(string: String) = runReturnBuilder { PotatoExpression.LikeExpression(string).let(holder::append) }
+
+	override fun toString(): String = holder.toString()
 
 }
 
