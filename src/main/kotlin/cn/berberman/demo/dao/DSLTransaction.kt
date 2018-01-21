@@ -76,14 +76,16 @@ sealed class PotatoExpression {
 	override fun toString(): String = when (this) {
 		is LikeExpression       -> "like '%$target%' "
 		NotExpression           -> "not "
-		is InExpression<*>      -> "in($a,$b) "
+		is InExpression<*>      -> "in(${list.joinToString()}) "
 		is BetweenExpression<*> -> "between $a and $b "
+		is EqualsExpression     -> "= $string"
 	}
 
 	data class LikeExpression(val target: String) : PotatoExpression()
 	object NotExpression : PotatoExpression()
-	data class InExpression<in T>(val a: Comparable<T>, val b: Comparable<T>)
-	data class BetweenExpression<in T>(val a: Comparable<T>, val b: Comparable<T>)
+	data class InExpression<out T>(val list: List<T>) : PotatoExpression()
+	data class BetweenExpression<in T>(val a: Comparable<T>, val b: Comparable<T>) : PotatoExpression()
+	data class EqualsExpression(val string: String) : PotatoExpression()
 
 
 }
@@ -92,11 +94,15 @@ class PotatoExpressionBuilder {
 	private val holder = StringBuilder()
 	infix fun like(target: String) = runReturnBuilder { PotatoExpression.LikeExpression(target).let(holder::append) }
 	fun not() = runReturnBuilder { PotatoExpression.NotExpression.let(holder::append) }
-	fun <T> `in`(a: Comparable<T>, b: Comparable<T>) = runReturnBuilder { PotatoExpression.InExpression(a, b).let(holder::append) }
+	infix fun <T> `in`(list: List<T>) = runReturnBuilder { PotatoExpression.InExpression(list).let(holder::append) }
+	infix fun between(range: IntRange) = runReturnBuilder { PotatoExpression.BetweenExpression(range.first, range.last).let(holder::append) }
 	fun <T> between(a: Comparable<T>, b: Comparable<T>) = runReturnBuilder { PotatoExpression.BetweenExpression(a, b).let(holder::append) }
 	override fun toString(): String = holder.toString()
 	//	private inline fun <T> runReturnUnit(block: () -> T) = kotlin.run { block();Unit }
 	private inline fun <T> runReturnBuilder(block: () -> T) = kotlin.run { block();this }
+
+	infix fun equals(string: String) = runReturnBuilder { PotatoExpression.LikeExpression(string).let(holder::append) }
+
 }
 
 fun expression(block: PotatoExpressionBuilder.() -> Unit) = PotatoExpressionBuilder().apply(block)

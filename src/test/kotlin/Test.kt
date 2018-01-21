@@ -23,9 +23,24 @@ class Test {
 	fun test() {
 		session {
 			transaction {
-				Assert.assertNotNull(findAll<User>())
-				commit()
-				query<User> { fromThis() where condition(User::name to expression { not() like("aaa") }) }
+				query<User> {
+					fromThis() where condition(
+							User::name to expression {
+								not() like "aaa"
+							},
+							User::id to expression {
+								this between 2..10
+							})
+				}
+				query<User> {
+					fromThis() where condition(
+							User::name to expression {
+								not() `in` listOf("aaa", "bbb")
+							},
+							User::id to expression {
+								this equals "2"
+							})
+				}
 			}
 		}
 	}
