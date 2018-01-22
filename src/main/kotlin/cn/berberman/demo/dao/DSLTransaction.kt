@@ -19,13 +19,15 @@ class SessionScope {
 
 	inline operator fun <reified T> Session.get(id: Int): T = find(T::class.java, id)
 	inline fun <reified T> Session.findAll(): List<T> =
-			query { fromThis() }
+			query<T> { fromThis() }.cast()
 
-	inline fun <reified T> Session.query(block: HQLQueryStringBuilder<T>.() -> Unit): List<T> {
+	inline fun <reified T> Session.query(/*specificType:Class<*> =T::class.java,*/block: HQLQueryStringBuilder<T>.() -> Unit): List<Any> {
 		val queryString = HQLQueryStringBuilder<T>(T::class.java).apply { block() }.generate()
 		println(queryString)
-		return createQuery(queryString).list() as List<T>
+		return createQuery(queryString).list().let { it as? List<Any> ?: listOf() }
 	}
+	//FIXME 因为select的加入影响了返回的类型
+	fun <T> List<Any>.cast() = this as List<T>
 
 }
 
@@ -36,7 +38,11 @@ class HQLQueryStringBuilder<T>(entity: Class<*>) {
 		stringBuilder.append("from $entityName ${entityName.toLowerCase()} ")
 	}
 
-//	infix fun where(map: Map<KMutableProperty1<T, out Any?>, Any>) =
+	private fun from() = apply {
+		stringBuilder.append("from $entityName ")
+	}
+
+	//	infix fun where(map: Map<KMutableProperty1<T, out Any?>, Any>) =
 //			apply {
 //				stringBuilder.append("where ")
 //				fun <K, V> Map<K, V>.forEachIndexed(action: (Int, K, V) -> Unit) {
@@ -50,7 +56,7 @@ class HQLQueryStringBuilder<T>(entity: Class<*>) {
 //					}
 //					if (index != map.size - 1) stringBuilder.append("and ")
 //				}
-
+	//TODO 不能查找实体内部的实体
 	infix fun where(conditions: Conditions<KMutableProperty1<T, out Any?>>) =
 			apply {
 				stringBuilder.append("where ")
@@ -61,8 +67,13 @@ class HQLQueryStringBuilder<T>(entity: Class<*>) {
 				}
 			}
 
-	infix fun select(args: List<KMutableProperty1<T, out Any?>>) {
-		TODO("还没想好怎么写")
+	infix fun select(args: List<KMutableProperty1<T, out Any?>>) = apply {
+		stringBuilder.append("select ")
+		args.forEachIndexed { index, property ->
+			stringBuilder.append(property.name)
+			if (index != args.size - 1) stringBuilder.append(",")
+		}
+		from()
 	}
 
 	fun generate() = stringBuilder.toString()
