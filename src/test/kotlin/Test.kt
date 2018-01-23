@@ -43,5 +43,20 @@ class Test {
 				query<User> { select(listOf(User::name)) }
 			}
 		}
+
+		session {
+			queryEntity<User> {
+				fromThis() where condition(User::name to expression {
+					this like "233"
+				})
+			}
+		}
+
+
+	}
+
+	@Test
+	fun test2() {
+		session { queryEntity<User> { fromThis() } }
 	}
 }

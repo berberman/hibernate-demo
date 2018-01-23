@@ -10,31 +10,34 @@ inline fun session(block: SessionScope.() -> Unit) = SessionScope().block()
 
 @Suppress("UNCHECKED_CAST")
 class SessionScope {
+	private val session: Session = DB.instance.sessionFactory.openSession()
 	fun transaction(block: Session.() -> Unit) {
-		val session = DB.instance.sessionFactory.openSession()
 		session.beginTransaction()
 		session.block()
-		session.close()
 	}
 
 	fun Session.commit() = transaction.commit()
 
 	inline operator fun <reified T> Session.get(id: Int): T = find(T::class.java, id)
-	inline fun <reified T> Session.findAll(): List<T> =
+	inline fun <reified T> findAll(): List<T> =
 			queryEntity { fromThis() }
 
-	inline fun <reified T> Session.queryEntity(block: HQLQueryStringBuilder<T>.() -> Unit): List<T> = query(block) as List<T>
-//	}	inline fun <reified T> Session.queryEntity(block: HQLQueryStringBuilder<T>.() -> Unit): List<T> {
-//		val queryString = HQLQueryStringBuilder<T>(T::class.java).apply { block() }.generate()
-//		println("生成语句: $queryString)")
-//		return createQuery(queryString).list().let { it as? List<T> ?: listOf() }
-//	}
+	inline fun <reified T> queryEntity(block: HQLQueryStringBuilder<T>.() -> Unit): List<T> = query(block) as List<T>
 
-	inline fun <reified T> Session.query(block: HQLQueryStringBuilder<T>.() -> Unit): List<Any> {
+
+	inline fun <reified T> query(block: HQLQueryStringBuilder<T>.() -> Unit): List<Any> {
 		val queryString = HQLQueryStringBuilder<T>(T::class.java).apply { block() }.generate()
 		println("生成语句: $queryString)")
-		return createQuery(queryString).list().let { it as? List<Any> ?: listOf() }
+		return `access$session`.createQuery(queryString).list().let { it as? List<Any> ?: listOf() }
 	}
+
+	fun closeSession() {
+		session.close()
+	}
+
+	@PublishedApi
+	internal val `access$session`: Session
+		get() = session
 
 }
 
@@ -60,25 +63,11 @@ class HQLQueryStringBuilder<T>(entity: Class<*>) {
 		stringBuilder.append("from $entityName ")
 	}
 
-	//	infix fun where(map: Map<KMutableProperty1<T, out Any?>, Any>) =
-//			apply {
-//				stringBuilder.append("where ")
-//				fun <K, V> Map<K, V>.forEachIndexed(action: (Int, K, V) -> Unit) {
-//					var index = 0
-//					for (item in this) action(index++, item.key, item.value)
-//				}
-//				map.forEachIndexed { index, k, v ->
-//					when (v) {
-//						!is String -> stringBuilder.append("${entityName.toLowerCase()}.${k.name}=$v ")
-//						else       -> stringBuilder.append("${entityName.toLowerCase()}.${k.name} like '%$v%' ")
-//					}
-//					if (index != map.size - 1) stringBuilder.append("and ")
-//				}
 	//TODO 不能查找实体内部的实体
 	infix fun where(conditions: Conditions<KMutableProperty1<T, out Any?>>) =
 			apply {
+				if (!conditions.isNotEmpty()) return@apply
 				stringBuilder.append("where ")
-
 				conditions.forEachIndexed { index, k, v ->
 					stringBuilder.append("${entityName.toLowerCase()}.${k.name} $v")
 					if (index != conditions.size - 1) stringBuilder.append("and ")
