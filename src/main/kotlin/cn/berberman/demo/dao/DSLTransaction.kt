@@ -1,6 +1,8 @@
 package cn.berberman.demo.dao
 
 import org.hibernate.Session
+import javax.persistence.Entity
+import javax.persistence.Table
 import kotlin.reflect.KMutableProperty1
 
 
@@ -19,20 +21,36 @@ class SessionScope {
 
 	inline operator fun <reified T> Session.get(id: Int): T = find(T::class.java, id)
 	inline fun <reified T> Session.findAll(): List<T> =
-			query<T> { fromThis() }.cast()
+			queryEntity { fromThis() }
 
-	inline fun <reified T> Session.query(/*specificType:Class<*> =T::class.java,*/block: HQLQueryStringBuilder<T>.() -> Unit): List<Any> {
+	inline fun <reified T> Session.queryEntity(block: HQLQueryStringBuilder<T>.() -> Unit): List<T> = query(block) as List<T>
+//	}	inline fun <reified T> Session.queryEntity(block: HQLQueryStringBuilder<T>.() -> Unit): List<T> {
+//		val queryString = HQLQueryStringBuilder<T>(T::class.java).apply { block() }.generate()
+//		println("生成语句: $queryString)")
+//		return createQuery(queryString).list().let { it as? List<T> ?: listOf() }
+//	}
+
+	inline fun <reified T> Session.query(block: HQLQueryStringBuilder<T>.() -> Unit): List<Any> {
 		val queryString = HQLQueryStringBuilder<T>(T::class.java).apply { block() }.generate()
-		println(queryString)
+		println("生成语句: $queryString)")
 		return createQuery(queryString).list().let { it as? List<Any> ?: listOf() }
 	}
-	//FIXME 因为select的加入影响了返回的类型
-	fun <T> List<Any>.cast() = this as List<T>
 
 }
 
 class HQLQueryStringBuilder<T>(entity: Class<*>) {
-	private val entityName: String = entity.simpleName
+	private val entityName: String
+
+	init {
+		if (entity.isAnnotationPresent(Entity::class.java)) {
+			throw IllegalArgumentException("目标非实体类！")
+		}
+		entityName = if (entity.isAnnotationPresent(Table::class.java)) {
+			val table = entity.getAnnotation(Table::class.java)
+			table.name
+		} else entity.simpleName
+	}
+
 	private val stringBuilder = StringBuilder()
 	fun fromThis() = apply {
 		stringBuilder.append("from $entityName ${entityName.toLowerCase()} ")

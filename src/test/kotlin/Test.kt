@@ -4,7 +4,6 @@ import cn.berberman.demo.dao.expression
 import cn.berberman.demo.dao.session
 import cn.berberman.demo.entity.User
 import org.junit.After
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 
@@ -23,7 +22,7 @@ class Test {
 	fun test() {
 		session {
 			transaction {
-				query<User> {
+				queryEntity<User> {
 					fromThis() where condition(
 							User::name to expression {
 								not() like "aaa"
@@ -32,7 +31,7 @@ class Test {
 								this between 2..10
 							})
 				}
-				query<User> {
+				queryEntity<User> {
 					fromThis() where condition(
 							User::name to expression {
 								not() `in` listOf("aaa", "bbb")
@@ -41,6 +40,7 @@ class Test {
 								this equals "2"
 							})
 				}
+				query<User> { select(listOf(User::name)) }
 			}
 		}
 	}
