@@ -50,8 +50,8 @@ class HQLQueryStringBuilder<T>(entity: Class<*>) {
 		}
 		entityName = if (entity.isAnnotationPresent(Table::class.java)) {
 			val table = entity.getAnnotation(Table::class.java)
-			table.name
-		} else entity.simpleName
+			table.name + "0"
+		} else entity.simpleName + "0"
 	}
 
 	private val stringBuilder = StringBuilder()
@@ -59,9 +59,6 @@ class HQLQueryStringBuilder<T>(entity: Class<*>) {
 		stringBuilder.append("from $entityName ${entityName.toLowerCase()} ")
 	}
 
-	private fun from() = apply {
-		stringBuilder.append("from $entityName ")
-	}
 
 	//TODO 不能查找实体内部的实体
 	infix fun where(conditions: Conditions<KMutableProperty1<T, out Any?>>) =
@@ -80,7 +77,8 @@ class HQLQueryStringBuilder<T>(entity: Class<*>) {
 			stringBuilder.append(property.name)
 			if (index != args.size - 1) stringBuilder.append(",")
 		}
-		from()
+		stringBuilder.append("from $entityName ")
+
 	}
 
 	fun generate() = stringBuilder.toString()
